@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>UltraProbe</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.ultrawake.UltraProbe</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>UltraProbe</string>
+	<key>CFBundlePackageType</key>
+	<string>KEXT</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1.0.0</string>
+	<key>IOKitPersonalities</key>
+	<dict>
+		<key>UltraProbe</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>org.ultrawake.UltraProbe</string>
+			<key>IOClass</key>
+			<string>UltraProbe</string>
+			<key>IOMatchCategory</key>
+			<string>UltraProbe</string>
+			<key>IOProviderClass</key>
+			<string>IOResources</string>
+			<key>IOResourceMatch</key>
+			<string>IOKit</string>
+			<key>SoCACPIBase</key>
+			<integer>6144</integer>
+			<key>PCHACPIDevice</key>
+			<string>PC02</string>
+			<key>PCHBaseName</key>
+			<string>ABAS</string>
+			<key>ScanBuses</key>
+			<array>
+				<integer>0</integer>
+				<integer>128</integer>
+			</array>
+		</dict>
+	</dict>
+	<key>OSBundleLibraries</key>
+	<dict>
+		<key>com.apple.iokit.IOACPIFamily</key>
+		<string>1.0.0d1</string>
+		<key>com.apple.iokit.IOPCIFamily</key>
+		<string>1.0.0b1</string>
+		<key>com.apple.kpi.iokit</key>
+		<string>20.0.0</string>
+		<key>com.apple.kpi.libkern</key>
+		<string>20.0.0</string>
+		<key>com.apple.kpi.mach</key>
+		<string>20.0.0</string>
+	</dict>
+	<key>OSBundleRequired</key>
+	<string>Root</string>
+</dict>
+</plist>
