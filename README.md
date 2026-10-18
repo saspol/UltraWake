@@ -12,6 +12,14 @@ macOS 15 Sequoia and OpenCore 1.0.8.
 > laptops (Core Ultra mobile), or AMD systems, even if the symptoms look the
 > same. Other Arrow Lake-S chipsets (B860, H810) have not been tested.
 
+> **Recommended: use it together with a coding agent** (for example Claude
+> Code), the way the fix was found and tested. The PCH base address and the
+> table lengths in the patches depend on your board and BIOS; the agent can
+> read your registers and logs, check every patch against your dumped ACPI
+> tables before you reboot, and change the EFI only with a backup and your
+> confirmation. Start with [docs/diagnose-with-an-agent.md](docs/diagnose-with-an-agent.md)
+> (it has a ready prompt); the rules for the agent are in [AGENTS.md](AGENTS.md).
+
 The project has three parts:
 
 | Part | What it is | What it fixes |
