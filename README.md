@@ -17,14 +17,15 @@ macOS 15 Sequoia and OpenCore 1.0.8.
 > table lengths in the patches depend on your board and BIOS; the agent can
 > read your registers and logs, check every patch against your dumped ACPI
 > tables before you reboot, and change the EFI only with a backup and your
-> confirmation. Start with [docs/diagnose-with-an-agent.md](docs/diagnose-with-an-agent.md)
-> (it has a ready prompt); the rules for the agent are in [AGENTS.md](AGENTS.md).
+> confirmation. Start with
+> [docs/diagnose-with-an-agent.md](docs/diagnose-with-an-agent.md) (it has a
+> ready prompt); the rules for the agent are in [AGENTS.md](AGENTS.md).
 
 The project has three parts:
 
 | Part | What it is | What it fixes |
 |---|---|---|
-| **UltraSleep** | an SSDT and two OpenCore ACPI patches | every sleep after the first one ends by itself within 9-17 seconds |
+| **UltraSleep** | an SSDT and two OpenCore ACPI patches | every sleep after the first one ends by itself within about 10-20 seconds |
 | **UltraScreenWake** | a kernel extension | a key press wakes the machine, but the screen stays off until a second key press |
 | **UltraProbe** | a read-only diagnostic kernel extension | nothing; it records the registers that show why the machine woke |
 
@@ -33,8 +34,9 @@ UltraScreenWake needs UltraSleep. UltraProbe is only for investigation.
 ## The problems
 
 1. **The machine wakes by itself.** The first sleep after boot works. Every
-   later sleep ends 9-17 seconds after it starts, and with Power Nap the
-   machine keeps waking every few seconds.
+   later sleep ends by itself within about 10-20 seconds (9-17 s on the test
+   machine), and every maintenance sleep that macOS starts from that wake
+   ends the same way.
 2. **The screen does not come on.** A key press wakes the machine, but macOS
    stays in DarkWake (no display) until the keyboard is pressed again.
 
@@ -80,8 +82,8 @@ It needs two OpenCore ACPI patches, both in
 | `_PTS` → `ZPTS` | DSDT | lets SSDT-UltraSleep provide `_PTS` and call the original |
 
 Both patches carry the table lengths of BIOS F17 (`TableLength`) and do
-nothing on another BIOS. The value `0x8C00` is this board's PCH base; check
-yours before using it (see *Other boards*).
+nothing on a BIOS with other table lengths. The value `0x8C00` is this
+board's PCH base; check yours before using it (see *Other Z890 boards*).
 
 `SSDT-UltraSleep-Debug.aml` is the same table plus register snapshots in
 `_PTS` and `_WAK` for UltraProbe. It needs the third patch in the file,
@@ -99,11 +101,14 @@ USB device: UltraSleep clears that bit before every sleep, so it belongs to
 this wake. UltraScreenWake then calls `activityTickle(0, 0)` on
 `IODisplayWrangler` 1.5 s and 4 s later - the call an HID event makes - and the
 kernel requests the full wake ("Requesting full wake due to dark wake activity
-tickle"). The screen comes on about 2 seconds after the key press.
+tickle"). The full wake starts about 2 seconds after the DarkWake begins.
 
-It only reads hardware (one I/O port read per DarkWake). Wakes from the timer,
-the power button or the network do not set the XHCI bit and stay as macOS
-decides. Power Nap and maintenance wakes stay dark.
+It only reads hardware (one I/O port read per DarkWake). Any USB wake sets the
+XHCI bit, so a mouse or another USB device that wakes the machine turns the
+screen on too. Wakes from the timer, the power button or the network do not
+set that bit and stay as macOS decides; Power Nap and maintenance wakes stay
+dark. (This follows from the registers; the timer wake has not been tested
+yet.)
 
 Settings (personality properties in `Info.plist`):
 
@@ -137,7 +142,7 @@ To diagnose your own machine with a coding agent, see
 
 ## Installation (OpenCore)
 
-1. Build (see *Building*) or take the release files.
+1. Build (see *Building*).
 2. Copy `SSDT-UltraSleep.aml` to `EFI/OC/ACPI/` and `UltraScreenWake.kext` to
    `EFI/OC/Kexts/`.
 3. In `config.plist`:
@@ -165,18 +170,20 @@ different values. Check these first:
 
 - **PCH base.** UltraScreenWake reads it at run time. The UltraSleep patch has
   it as a constant. Check it with UltraProbe: the line
-  `UP: PC02.ABAS = 0x8c00 ... used as PCH base`. If yours differs, change the
-  last two bytes of the patch's `Replace` (`0B 00 8C` is `0x8C00`, little
-  endian).
+  `UP: PC02.ABAS = 0x8c00 ... used as PCH base`, or `PCHBase` of
+  UltraScreenWake in IORegistry. If yours differs, change bytes 7-8 of the
+  ABAS patch's `Replace`: it starts with `08 41 42 41 53 0B 00 8C`, where
+  `0B` is the word prefix and `00 8C` is `0x8C00` little endian.
 - **Table lengths.** The patches check `TableLength` (DSDT 608545, PchGpe
   11475 on F17). Dump your original tables (OpenCore DEBUG build,
   `SysReport`; see step 2 of
   [docs/diagnose-with-an-agent.md](docs/diagnose-with-an-agent.md)), check
   that the `Find` bytes occur exactly once, and set your lengths.
-- **SoC base.** `0x1800` (FADT PM1a event block). SSDT-UltraSleep uses
-  `0x186C` = `0x1800 + 0x6C`.
+- **SoC base.** `0x1800` (FADT PM1a event block). SSDT-UltraSleep has
+  `0x186C` = `0x1800 + 0x6C` as the address of `OperationRegion (USG0, …)`;
+  UltraProbe reads it from `SoCACPIBase`.
 - **Wake bit.** `0x200` is the PCH XHCI in `S210` on Z890 (see `H210` in the
-  PchGpe SSDT).
+  PchGpe SSDT); UltraScreenWake reads it from `WakeStatusMask`.
 
 ## Building
 
@@ -196,8 +203,8 @@ dumped table the way OpenCore does, to check the patches before booting.
 ## Status
 
 Tested on one machine: Gigabyte Z890 AORUS ELITE WIFI7, BIOS F17, Intel Core
-Ultra 200S (Arrow Lake-S), AMD Radeon RX 6900 XT, macOS 15.8.1, OpenCore 1.0.8. Not yet
-tested: long sleep, wake by timer.
+Ultra 200S (Arrow Lake-S), AMD Radeon RX 6900 XT, macOS 15.8.1, OpenCore
+1.0.8. Not yet tested: long sleep, wake by timer.
 
 ## License
 

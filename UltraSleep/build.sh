@@ -1,6 +1,6 @@
 #!/bin/sh
-# Compile the UltraSleep tables with iasl (ACPICA). IASL may point at any
-# recent iasl; the tables use only ACPI 2.0 operators.
+# Compile the UltraSleep tables with iasl (ACPICA). IASL may point at another
+# iasl; tested with ACPICA 20260930.
 set -eu
 cd "$(dirname "$0")"
 IASL=${IASL:-iasl}

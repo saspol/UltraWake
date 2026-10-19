@@ -22,10 +22,9 @@
 //   - The XHCI bit must belong to the current wake. UltraSleep clears it in
 //     _PTS before every sleep; without it the bit stays set from boot and
 //     every DarkWake (Power Nap, network) would be promoted.
-//   - The tickle must come after the wake transition. Priority sleep/wake
-//     clients get the capability change before IOGraphics, and a tickle sent
-//     from the notification itself is dropped; the default delays are 1.5 s
-//     and 4 s.
+//   - The tickle is sent from a timer 1.5 s and again 4 s after the DarkWake
+//     notification (TickleDelaysMS); that timing is tested. A tickle sent
+//     from inside the notification has not been tested.
 //
 // UltraScreenWake only reads hardware (one 32-bit I/O port read per DarkWake). The
 // PCH ACPI base comes from the ACPI name given in Info.plist (default

@@ -2,8 +2,8 @@
 
 Findings from the investigation on an Intel Core Ultra 200S (Arrow Lake-S)
 desktop with a Gigabyte Z890 AORUS ELITE WIFI7 (BIOS F17), macOS 15.8.1
-(xnu-11417.140.69), OpenCore 1.0.8. Register values
-come from UltraProbe and its predecessors; kernel log lines come from the
+(xnu-11417.140.69), OpenCore 1.0.8. Register values come from UltraProbe and
+its predecessors; kernel log lines come from the
 `PMRD:` power management log (`log show --predicate 'process == "kernel"'`).
 
 ## 1. Two PMCs
@@ -56,7 +56,8 @@ The firmware clears it in `\_GPE._L6B` → `PL6B` and `_L6E` → `PL6E`: read
 `0x2000`/`0x0800`/`0x40000`/`0x4000` to `S200`. In macOS these handlers never
 run: `0x6B` and `0x6E` are referenced by `_PRW` methods (39 devices on `0x6B`),
 so ACPICA treats them as wake GPEs and does not enable them at run time (SoC
-GPE0 enable dword 3 at run time: `0x000e8206`).
+GPE0 enable dword 3 at run time: `0x000e8206`, without `0x0800` and
+`0x4000`).
 
 Measured with the probe (`G0S` = GPE0 status, `G1S` = GPE1 status):
 
@@ -87,8 +88,9 @@ On x86, `IOPMrootDomain::powerChangeDone` decides right after
 - anything else → DarkWake, left only by a display wrangler tickle.
 
 `Wake Type` is set by the platform driver before that point. For a wake
-through GPE `0x6B` AppleACPIPlatform sets none. The `acpi-wake-type` property
-did not change that:
+through GPE `0x6B` it is evidently not "User": the wake stays dark (the value
+at that moment was not recorded). The `acpi-wake-type` property did not
+change that:
 
 | Attempt | Result |
 |---|---|
@@ -119,7 +121,7 @@ matters:
 |---|---|---|
 | tickle from `kIOMessageSystemHasPoweredOn` | screen comes on only on the second key press | priority clients get `HasPoweredOn` only on the **full** wake |
 | tickle 1.5 s / 4 s after `HasPoweredOn` | same | same |
-| tickle 1.5 s / 4 s after `kIOMessageSystemCapabilityChange` (DidChange, 0 → CPU without Graphics) | **full wake 2 s after the key press**, "due to HID Activity" | the DarkWake itself |
+| tickle 1.5 s / 4 s after `kIOMessageSystemCapabilityChange` (DidChange, 0 → CPU without Graphics) | **full wake 2 s after the DarkWake begins**, "due to HID Activity" | the DarkWake itself |
 
 Kernel log of a working wake:
 

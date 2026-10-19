@@ -1,7 +1,8 @@
 # UltraProbe
 
-Read-only diagnostics for S3 sleep/wake on Intel desktops with a separate PCH.
-UltraProbe never writes to hardware.
+Read-only diagnostics for S3 sleep/wake on Intel Core Ultra 200S (Arrow Lake-S)
+desktops with a Z890 chipset; the defaults in `Info.plist` are for that
+platform. UltraProbe never writes to hardware.
 
 ## When it records
 
@@ -11,7 +12,10 @@ UltraProbe never writes to hardware.
 | S3 resume, DarkWake | `kIOMessageSystemCapabilityChange`, DidChange, 0 → CPU without Graphics | `dark-wake` |
 | full wake (screen on) | `kIOMessageSystemCapabilityChange`, DidChange, Graphics gained | `full-wake` |
 
-`cN` in every line is the sleep number since boot.
+`cN` in every line is the sleep number since boot. Two more lines appear
+once: `UP: started, …` when the kext starts, and
+`UP: PC02.ABAS = 0x8c00 (ret 0x0) used as PCH base` (or `rejected`) when the
+PCH base is first read, on the first sleep.
 
 ## Reading the record
 
@@ -33,14 +37,14 @@ UP: c2 dark-wake scan bus 80: 17 functions, 0 with PME flags
 UP: c2 dark-wake PTS PTSN=2 PCHB=8c00 PA00=2000 PA10=200 … PB00=0 …
 UP: c2 dark-wake WAK WAKN=2 WAP1=1 WA00=2000 WA10=200 … WAS0=4800
 UP: c2 dark-wake typed: LPCB.RTC(gpe ffff)=4 _SB.PWRB(gpe ffff)=1 RP01.PXSX(gpe 6b)=2
-UP: c2 dark-wake root Wake Type="" Wake Reason="RP01 RP09 RP09 PXSX …"
+UP: c2 dark-wake root Wake Type="…" Wake Reason="RP01 RP09 RP09 PXSX …"
 ```
 
 | Field | Meaning |
 |---|---|
 | `t=` | calendar time, seconds since 1970 |
 | `soc@base` / `pch@base` | PMC ACPI block: `PM1` status/enable; `G0S`/`G0E` GPE0 status/enable, four dwords (GPE 0x00-0x7F, last dword 0x60-0x7F); `G1S`/`G1E` GPE1 status/enable, three dwords |
-| `pci b:d.f vid:did name` | an IOPCIDevice with `PME_Status` (bit 15) or `PME_En` (bit 8) in PMCS; for root ports also Root Control, Root Status and the PME requester ID |
+| `pci b:d.f vid:did name` | an IOPCIDevice with `PME_Status` (bit 15) or `PME_En` (bit 8) in PMCS, or a PCIe root port with PME Status or PME Pending in Root Status; root ports also show Root Control, Root Status and the PME requester ID |
 | `scan b:d.f` | the same for a function found by reading config space by address; `scan bus N:` gives the counts |
 | `PTS` / `WAK` | snapshots of SSDT-UltraSleep-Debug, see its header; absent without that table |
 | `typed:` | ACPI devices with `acpi-wake-type`, their parent, `acpi-wake-gpe` and the type |

@@ -47,8 +47,10 @@ For a kernel extension:
    fail to link the kext at boot.
 3. `kmutil print-diagnostics -p <kext>` says `Dependencies: OK` (the ownership
    and signature remarks it also prints do not apply to OpenCore injection).
-4. Never depend on `com.apple.kpi.private`: `kmutil` refuses third-party kexts
-   that link it.
+4. Do not depend on `com.apple.kpi.private`: `kmutil libraries` did not
+   accept a build that listed it ("No extension at …"), so the build could
+   not be checked. On x86, `IOPMrootDomain::requestUserActive` (exported only
+   there) is `activityTickle(0, 0)` on `IODisplayWrangler`; call that instead.
 5. Count port writes: `otool -tv <binary> | grep -cE '\bout[lwb]?\b'` must be
    0 for UltraScreenWake and UltraProbe. Both only read hardware.
 
@@ -77,8 +79,10 @@ These come from real panics and failed attempts in this project:
   (`kIOPMSystemCapabilityDidChange`, from 0 to CPU without Graphics).
   Priority sleep/wake clients get `kIOMessageSystemHasPoweredOn` only on the
   full wake.
-- Do not tickle `IODisplayWrangler` from inside the power notification; use a
-  timer (`IOTimerEventSource` on the kext's own `IOWorkLoop`).
+- Send the `IODisplayWrangler` tickle from a timer (`IOTimerEventSource` on
+  the kext's own `IOWorkLoop`) 1.5 s after the DarkWake notification; this is
+  the tested timing. A tickle sent from inside the notification has not been
+  tested.
 - Most ACPI nodes are not registered services: walk `gIOACPIPlane` to find
   them, or use `IOACPIPlatformDevice` matching only for registered ones
   (`PC02`, `PRR2`).
@@ -86,7 +90,8 @@ These come from real panics and failed attempts in this project:
   kernel message buffer only; keep anything a user must read in IORegistry
   properties.
 - Do not write to PMC or PCI registers from a kext. Clearing status bits is
-  done in ACPI `_PTS` (UltraSleep), the last code that runs before S3.
+  done in ACPI `_PTS` (UltraSleep), which runs after the drivers have powered
+  their devices down, shortly before S3 entry.
 - Keep the defaults in `Info.plist` personality properties, not hard-coded,
   when a value is board-specific (PCH base name, offsets, masks, delays).
 
