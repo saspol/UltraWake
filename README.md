@@ -169,8 +169,10 @@ different values. Check these first:
   last two bytes of the patch's `Replace` (`0B 00 8C` is `0x8C00`, little
   endian).
 - **Table lengths.** The patches check `TableLength` (DSDT 608545, PchGpe
-  11475 on F17). Dump your tables, check that the `Find` bytes occur exactly
-  once, and set your lengths.
+  11475 on F17). Dump your original tables (OpenCore DEBUG build,
+  `SysReport`; see step 2 of
+  [docs/diagnose-with-an-agent.md](docs/diagnose-with-an-agent.md)), check
+  that the `Find` bytes occur exactly once, and set your lengths.
 - **SoC base.** `0x1800` (FADT PM1a event block). SSDT-UltraSleep uses
   `0x186C` = `0x1800 + 0x6C`.
 - **Wake bit.** `0x200` is the PCH XHCI in `S210` on Z890 (see `H210` in the
