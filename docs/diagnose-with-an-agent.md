@@ -46,7 +46,7 @@ Likely yes, if most of these are true:
 > confirmation. One change per reboot. Keep a log of every finding and
 > change in a Markdown file.
 
-## Steps
+## Steps the agent takes
 
 1. **Give the agent this repository and the facts.** Board, BIOS version,
    CPU, GPU, macOS and OpenCore versions, and the symptoms above.
