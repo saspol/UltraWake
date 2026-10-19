@@ -35,9 +35,11 @@ Likely yes, if most of these are true:
 
 ## A prompt to start with
 
-> I have a hackintosh with the same sleep problems as described in this
-> repository (UltraWake). Board: …, BIOS: …, CPU: …, macOS: …,
-> OpenCore: …. Read README.md, docs/how-it-works.md and
+> I have a hackintosh with the same sleep problems as described in the
+> UltraWake repository, https://github.com/saspol/UltraWake. Board: …,
+> BIOS: …, CPU: …, macOS: …, OpenCore: …. Clone the repository
+> (`git clone https://github.com/saspol/UltraWake.git`) into a working
+> folder and read README.md, AGENTS.md, docs/how-it-works.md and
 > docs/diagnose-with-an-agent.md. Then diagnose my machine step by step:
 > collect the current state first and change nothing until you have shown me
 > what you found. Before every change to the EFI partition, make a backup,
