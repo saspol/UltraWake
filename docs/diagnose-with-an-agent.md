@@ -33,6 +33,19 @@ Likely yes, if most of these are true:
   numbers can change between boots; the agent should check that the mounted
   partition has `EFI/OC/config.plist` before writing anything.
 
+## A prompt to start with
+
+> I have a hackintosh with the same sleep problems as described in this
+> repository (UltraWake). Board: …, BIOS: …, CPU: …, macOS: …,
+> OpenCore: …. Read README.md, docs/how-it-works.md and
+> docs/diagnose-with-an-agent.md. Then diagnose my machine step by step:
+> collect the current state first and change nothing until you have shown me
+> what you found. Before every change to the EFI partition, make a backup,
+> validate the config with ocvalidate, test ACPI patches with ocpatch.py and
+> acpiexec on my dumped tables, show me the difference, and wait for my
+> confirmation. One change per reboot. Keep a log of every finding and
+> change in a Markdown file.
+
 ## Steps
 
 1. **Give the agent this repository and the facts.** Board, BIOS version,
@@ -77,19 +90,6 @@ Likely yes, if most of these are true:
    to dark wake activity tickle` about 1.5 s after the DarkWake.
 
 7. **Remove UltraProbe** when done.
-
-## A prompt to start with
-
-> I have a hackintosh with the same sleep problems as described in this
-> repository (UltraWake). Board: …, BIOS: …, CPU: …, macOS: …,
-> OpenCore: …. Read README.md, docs/how-it-works.md and
-> docs/diagnose-with-an-agent.md. Then diagnose my machine step by step:
-> collect the current state first and change nothing until you have shown me
-> what you found. Before every change to the EFI partition, make a backup,
-> validate the config with ocvalidate, test ACPI patches with ocpatch.py and
-> acpiexec on my dumped tables, show me the difference, and wait for my
-> confirmation. One change per reboot. Keep a log of every finding and
-> change in a Markdown file.
 
 ## What the agent should not do
 
